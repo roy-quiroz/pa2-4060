@@ -2,18 +2,26 @@ const express = require('express');
 const router = express.Router();
 
 const {
-    obtenerSolicitudes, 
-    obtenerSolicitudPorId, 
-    crearSolicitud, 
+    obtenerSolicitudes,
+    obtenerSolicitudPorId,
+    crearSolicitud,
     actualizarSolicitud,
-    actualizarSolicitudParcial, 
-    eliminarSolicitud } = require('../controllers/solicitudController')
+    actualizarSolicitudParcial,
+    eliminarSolicitud } = require('../controllers/solicitudController');
 
+const { verificarToken, permitirRoles } = require('../middlewares/authMiddleware');
+
+// Todas las rutas de solicitudes requieren un usuario autenticado
+router.use(verificarToken);
+
+// estudiante: solo sus solicitudes | admin: todas
 router.get('/', obtenerSolicitudes);
 router.get('/:id', obtenerSolicitudPorId);
 router.post('/', crearSolicitud);
 router.put('/:id', actualizarSolicitud);
-router.patch('/:id', actualizarSolicitudParcial)
-router.delete('/:id', eliminarSolicitud);
+router.patch('/:id', actualizarSolicitudParcial);
 
-module.exports = router
+// Solo el administrador puede eliminar
+router.delete('/:id', permitirRoles('admin'), eliminarSolicitud);
+
+module.exports = router;

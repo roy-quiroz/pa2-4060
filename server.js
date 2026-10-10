@@ -1,5 +1,7 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
 const conectarDB = require('./config/db');
 const solicitudRoutes = require('./routes/solicitudRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -8,6 +10,20 @@ const { notFound, errorHandler } = require('./middlewares/errorHandler');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Seguridad: cabeceras HTTP seguras
+app.use(helmet());
+
+// CORS: solo los orígenes (frontends) permitidos en el .env pueden consumir la API desde el navegador
+const origenesPermitidos = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+    .split(',')
+    .map(origen => origen.trim());
+
+app.use(cors({
+    origin: origenesPermitidos,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Middleware para interpretar solicitudes JSON
 app.use(express.json());

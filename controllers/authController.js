@@ -37,6 +37,16 @@ exports.registrar = async (req, res, next) => {
     }
 };
 
+//GET /auth/perfil (requiere token)
+exports.perfil = async (req, res, next) => {
+    try {
+        const usuario = await Usuario.findById(req.usuario.id);
+        res.status(200).json({ usuario: datosPublicos(usuario) });
+    } catch (error) {
+        next(error);
+    }
+};
+
 //POST /auth/login
 exports.login = async (req, res, next) => {
     try {

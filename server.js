@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const conectarDB = require('./config/db');
 const solicitudRoutes = require('./routes/solicitudRoutes');
+const authRoutes = require('./routes/authRoutes');
 const logger = require('./middlewares/logger');
 const { notFound, errorHandler } = require('./middlewares/errorHandler');
 
@@ -20,7 +21,8 @@ app.get('/', (req, res) => {
     });
 });
 
-// Registrar las rutas de solicitudes
+// Registrar las rutas de autenticación y de solicitudes
+app.use('/auth', authRoutes);
 app.use('/solicitudes', solicitudRoutes);
 
 // Rutas no encontradas y manejo global de errores (siempre al final)
@@ -29,6 +31,12 @@ app.use(errorHandler);
 
 // Iniciar el servidor solo después de conectar con MongoDB
 const iniciarServidor = async () => {
+    // Sin clave secreta no se pueden firmar tokens JWT
+    if (!process.env.JWT_SECRET) {
+        console.error('Falta JWT_SECRET en el archivo .env');
+        process.exit(1);
+    }
+
     await conectarDB();
     app.listen(PORT, () => {
         console.log(`Servidor ejecutándose en http://localhost:${PORT}`);

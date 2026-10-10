@@ -1,17 +1,17 @@
 const Solicitud = require('../models/solicitudModel')
 
 //GET
-exports.obtenerSolicitudes = async (req, res) => {
+exports.obtenerSolicitudes = async (req, res, next) => {
     try{
         const solicitudes = await Solicitud.find();
         res.status(200).json({total: solicitudes.length, solicitudes})
     } catch(error){
-        res.status(500).json({mensaje: 'Error al obtener las solicitudes', error: error.message})
+        next(error)
     }
-} 
+}
 
 //GET ID
-exports.obtenerSolicitudPorId = async (req, res) => {
+exports.obtenerSolicitudPorId = async (req, res, next) => {
     try{
         const solicitud = await Solicitud.findById(req.params.id);
         if(!solicitud){
@@ -19,26 +19,35 @@ exports.obtenerSolicitudPorId = async (req, res) => {
         }
         res.status(200).json({solicitud})
     } catch(error){
-        res.status(400).json({mensaje: 'ID de solicitud no válida', error: error.message})
+        next(error)
     }
-} 
+}
 
 //POST
-exports.crearSolicitud = async (req, res) => {
-    try{
-        const nuevaSolicitud = await Solicitud.create(req.body);
-        res.status(201).json({mensaje: 'Solicitud creada correctamente', solicitud: nuevaSolicitud})
-    } catch(error){
-        res.status(400).json({mensaje: 'Error al crear la solicitud, datos incorrectos', error: error.message})
-    }
-} 
-
-//PUT
-exports.actualizarSolicitud = async (req, res) => {
+exports.crearSolicitud = async (req, res, next) => {
     try{
         const {alumno, curso, descripcion, estado} = req.body;
+        const nuevaSolicitud = await Solicitud.create({alumno, curso, descripcion, estado});
+        res.status(201).json({mensaje: 'Solicitud creada correctamente', solicitud: nuevaSolicitud})
+    } catch(error){
+        next(error)
+    }
+}
+
+//PUT (reemplazo completo: exige todos los campos obligatorios)
+exports.actualizarSolicitud = async (req, res, next) => {
+    try{
+        const {alumno, curso, descripcion, estado} = req.body;
+
+        if(!alumno || !curso || !descripcion){
+            return res.status(400).json({
+                mensaje: 'PUT requiere todos los campos: alumno, curso y descripcion'
+            });
+        }
+
         const solicitudActualizada = await Solicitud.findByIdAndUpdate(
-            req.params.id,{alumno, curso, descripcion, estado},
+            req.params.id,
+            {alumno, curso, descripcion, estado: estado ?? 'Pendiente'},
             {new: true, runValidators: true}
         )
 
@@ -46,59 +55,46 @@ exports.actualizarSolicitud = async (req, res) => {
             return res.status(404).json({mensaje: 'Solicitud no encontrada'})
         }
         res.status(200).json({mensaje: 'Solicitud actualizada correctamente', solicitud: solicitudActualizada})
-    
-    } catch(error){
-        res.status(400).json({mensaje: 'Error al actualizar, verifique el ID y los datos', error: error.message})
-    }
-} 
 
-//PATCH
-exports.actualizarSolicitudParcial = async (req, res) => {
+    } catch(error){
+        next(error)
+    }
+}
+
+//PATCH (actualización parcial)
+exports.actualizarSolicitudParcial = async (req, res, next) => {
     try{
         const {alumno, curso, descripcion, estado} = req.body;
 
-        if (
-            alumno === undefined &&
-            curso === undefined &&
-            descripcion === undefined &&
-            estado === undefined
-        ) {
+        const campos = {};
+        if(alumno !== undefined) campos.alumno = alumno;
+        if(curso !== undefined) campos.curso = curso;
+        if(descripcion !== undefined) campos.descripcion = descripcion;
+        if(estado !== undefined) campos.estado = estado;
+
+        if(Object.keys(campos).length === 0){
             return res.status(400).json({
                 mensaje: 'Debes enviar al menos un campo para actualizar'
             });
         }
-        
-        const campos = {};
 
-        if(alumno !== undefined){
-            campos.alumno = alumno;
-        }
-        if(curso !== undefined){
-            campos.curso = curso;
-        }
-        if(descripcion !== undefined){
-            campos.descripcion = descripcion;
-        }
-        if(estado !== undefined){
-            campos.estado = estado;
-        }
-        
         const solicitudActualizadaParcial = await Solicitud.findByIdAndUpdate(
-            req.params.id, 
-            campos, {new: true, runValidators: true})
+            req.params.id,
+            campos,
+            {new: true, runValidators: true}
+        )
 
         if (!solicitudActualizadaParcial) {
             return res.status(404).json({mensaje: 'Solicitud no encontrada'});
         }
-        res.status(200).json({mensaje: 'Solicitud modificada correctamente', solicitud: solicitudActualizadaParcial
-        });
+        res.status(200).json({mensaje: 'Solicitud modificada correctamente', solicitud: solicitudActualizadaParcial})
     } catch(error){
-        res.status(400).json({mensaje: 'Error al modificar la solicitud, verifique el ID y los datos', error: error.message})
+        next(error)
     }
-} 
+}
 
 //DELETE
-exports.eliminarSolicitud = async (req, res) => {
+exports.eliminarSolicitud = async (req, res, next) => {
     try{
         const solicitudEliminada = await Solicitud.findByIdAndDelete(req.params.id);
 
@@ -106,9 +102,8 @@ exports.eliminarSolicitud = async (req, res) => {
             return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
         }
         res.status(200).json({mensaje: 'Solicitud eliminada correctamente', solicitud: solicitudEliminada})
-    
-    } catch(error){
-        res.status(400).json({mensaje: 'Error al eliminar. ID no válido', error: error.message})
-    }
-} 
 
+    } catch(error){
+        next(error)
+    }
+}

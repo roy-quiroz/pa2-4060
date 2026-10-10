@@ -18,6 +18,12 @@ function errorHandler(err, req, res, next) {
         return res.status(400).json({ mensaje: 'Datos inválidos', errores });
     }
 
+    // Valor duplicado en un campo único (por ejemplo, email ya registrado)
+    if (err.code === 11000) {
+        const campo = Object.keys(err.keyValue || {})[0] || 'campo';
+        return res.status(409).json({ mensaje: `El ${campo} ya está registrado` });
+    }
+
     // JSON mal formado en el body
     if (err.type === 'entity.parse.failed') {
         return res.status(400).json({ mensaje: 'El cuerpo de la solicitud no es un JSON válido' });

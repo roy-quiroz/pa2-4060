@@ -1,6 +1,13 @@
 const mongoose = require('mongoose');
 
 const solicitudSchema = new mongoose.Schema({
+    // Usuario dueño de la solicitud (relación con la colección "usuarios")
+    usuario: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Usuario',
+        required: [true, 'La solicitud debe pertenecer a un usuario']
+    },
+    // Se completa automáticamente con el nombre del usuario autenticado
     alumno: {
         type: String,
         required: [true, 'El nombre del alumno es obligatorio'],

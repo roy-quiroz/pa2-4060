@@ -1,13 +1,12 @@
-require('dotenv').config();                       
+require('dotenv').config();
 const express = require('express');
-const conectarDB = require('./config/db');      
+const conectarDB = require('./config/db');
 const solicitudRoutes = require('./routes/solicitudRoutes');
+const logger = require('./middlewares/logger');
+const { notFound, errorHandler } = require('./middlewares/errorHandler');
 
 const app = express();
-const logger = require('./middlewares/logger');
-const PORT = process.env.PORT || 3001;            
-
-conectarDB();                                     
+const PORT = process.env.PORT || 3001;
 
 // Middleware para interpretar solicitudes JSON
 app.use(express.json());
@@ -24,7 +23,16 @@ app.get('/', (req, res) => {
 // Registrar las rutas de solicitudes
 app.use('/solicitudes', solicitudRoutes);
 
-// Iniciar el servidor
-app.listen(PORT, () => {
-    console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
-});
+// Rutas no encontradas y manejo global de errores (siempre al final)
+app.use(notFound);
+app.use(errorHandler);
+
+// Iniciar el servidor solo después de conectar con MongoDB
+const iniciarServidor = async () => {
+    await conectarDB();
+    app.listen(PORT, () => {
+        console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
+    });
+};
+
+iniciarServidor();

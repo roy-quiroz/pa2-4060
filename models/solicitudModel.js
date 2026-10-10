@@ -27,4 +27,5 @@ const solicitudSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('Solicitud', solicitudSchema);
+// Tercer parámetro: nombre exacto de la colección (evita que Mongoose la llame "solicituds")
+module.exports = mongoose.model('Solicitud', solicitudSchema, 'solicitudes');

@@ -1,9 +1,13 @@
+require('dotenv').config();                       
 const express = require('express');
+const conectarDB = require('./config/db');      
 const solicitudRoutes = require('./routes/solicitudRoutes');
 
 const app = express();
 const logger = require('./middlewares/logger');
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;            
+
+conectarDB();                                     
 
 // Middleware para interpretar solicitudes JSON
 app.use(express.json());

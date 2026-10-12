@@ -223,7 +223,7 @@ Todas las capturas se encuentran en la carpeta [`evidencias/`](evidencias/).
 
 ## 6. Video de exposición
 
-**Video público de YouTube:** [PEGAR AQUÍ EL ENLACE]
+**Video público de YouTube:** https://youtu.be/DMfm3PE6M7E?si=e1tG0VKh3WlaGrs9
 
 Todos los integrantes deben participar en la exposición con sus cámaras prendidas y explicar el procedimiento, la solución desarrollada y las decisiones tomadas.
 
